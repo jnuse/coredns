@@ -58,6 +58,11 @@ type Config struct {
 	// TLSConfig when listening for encrypted connections (gRPC, DNS-over-TLS).
 	TLSConfig *tls.Config
 
+	// AllowHTTP allows DNS-over-HTTPS server to run without TLS (plain HTTP).
+	// This is only for local/internal use where TLS is not required.
+	// WARNING: This should NOT be used on public internet.
+	AllowHTTP bool
+
 	// MaxQUICStreams defines the maximum number of concurrent QUIC streams for a QUIC server.
 	// This is nil if not specified, allowing for a default to be used.
 	MaxQUICStreams *int

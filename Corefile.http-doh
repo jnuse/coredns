@@ -1,0 +1,63 @@
+# CoreDNS DoH HTTP 配置示例
+# 此配置展示如何在局域网环境中使用HTTP (非TLS) 的DoH服务器
+
+# 方案1: 使用HTTP DoH (仅局域网使用)
+# 监听在8053端口，提供HTTP DoH服务
+https://.:8053 {
+    tls {
+        # 允许使用HTTP而非HTTPS
+        # ⚠️ 警告: 仅在受信任的局域网中使用！
+        allow_http_doh
+    }
+    
+    # 日志记录
+    log
+    
+    # 错误处理
+    errors
+    
+    # DNS缓存
+    cache 30
+    
+    # 转发到上游DNS
+    forward . 8.8.8.8 8.8.4.4
+}
+
+# 方案2: 标准HTTPS DoH (生产环境推荐)
+# https://.:443 {
+#     tls cert.pem key.pem
+#     log
+#     errors
+#     cache 30
+#     forward . 8.8.8.8 8.8.4.4
+# }
+
+# 方案3: 同时提供普通DNS和HTTP DoH
+# 普通DNS服务
+# . :53 {
+#     log
+#     errors
+#     cache 30
+#     forward . 8.8.8.8
+# }
+# 
+# HTTP DoH服务 (局域网)
+# https://.:8053 {
+#     tls {
+#         allow_http_doh
+#     }
+#     log
+#     errors
+#     cache 30
+#     forward . 8.8.8.8
+# }
+
+# 使用方法:
+# 1. 启动: ./coredns -conf Corefile.http-doh
+# 2. 测试 (使用curl):
+#    curl -H "Content-Type: application/dns-message" \
+#         --data-binary @- \
+#         http://localhost:8053/dns-query < dns-query.bin
+#
+# 3. 或使用DoH客户端:
+#    dog example.com @http://localhost:8053/dns-query

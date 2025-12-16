@@ -98,6 +98,8 @@ func (s *ServerHTTPS) Serve(l net.Listener) error {
 	s.listenAddr = l.Addr()
 	s.m.Unlock()
 
+	// Only wrap with TLS if TLSConfig is set.
+	// This allows HTTP (non-TLS) DoH for local/internal use.
 	if s.tlsConfig != nil {
 		l = tls.NewListener(l, s.tlsConfig)
 	}

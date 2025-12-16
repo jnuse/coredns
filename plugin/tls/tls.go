@@ -29,6 +29,25 @@ func parseTLS(c *caddy.Controller) error {
 
 	for c.Next() {
 		args := c.RemainingArgs()
+		
+		// Check if this is a block-only configuration (e.g., for allow_http_doh)
+		if len(args) == 0 && c.NextBlock() {
+			switch c.Val() {
+			case "allow_http_doh":
+				// Allow DNS-over-HTTPS to run without TLS (plain HTTP)
+				// This is for local/internal use only
+				if len(c.RemainingArgs()) != 0 {
+					return c.ArgErr()
+				}
+				config.AllowHTTP = true
+				// Don't set TLSConfig, allowing HTTP DoH
+				return nil
+			default:
+				return c.Errf("tls requires certificate and key arguments, or use 'allow_http_doh' for HTTP DoH")
+			}
+		}
+		
+		// Normal TLS configuration with certificate files
 		if len(args) < 2 || len(args) > 3 {
 			return plugin.Error("tls", c.ArgErr())
 		}
@@ -54,6 +73,8 @@ func parseTLS(c *caddy.Controller) error {
 				default:
 					return c.Errf("unknown authentication type '%s'", authTypeArgs[0])
 				}
+			case "allow_http_doh":
+				return c.Errf("allow_http_doh must be used without certificate arguments")
 			default:
 				return c.Errf("unknown option '%s'", c.Val())
 			}

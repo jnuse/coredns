@@ -1,0 +1,79 @@
+# CoreDNS Rewrite 插件 IP 地址重写示例配置
+
+# 示例 1: 单个域名 IP 重写
+# 将 api.example.com 的 IP 替换为 203.0.113.10
+example.com:53 {
+    rewrite stop {
+        name suffix .example.com. .example.com.
+        answer auto
+        answer ip 203.0.113.10 api.example.com
+    }
+    forward . 8.8.8.8
+}
+
+# 示例 2: 从 hosts 文件加载多个映射
+# 适用于需要替换多个域名 IP 的场景
+internal.company.com:53 {
+    rewrite stop {
+        name suffix .internal.company.com. .internal.company.com.
+        answer auto
+        answer ip file /etc/coredns/ip-rewrites.txt
+    }
+    forward . 192.168.1.1
+}
+
+# 示例 3: 组合多个 IP 重写规则
+services.example.com:53 {
+    rewrite stop {
+        name suffix .services.example.com. .services.example.com.
+        answer auto
+        answer ip 10.0.1.10 web.services.example.com
+        answer ip 10.0.1.20 api.services.example.com
+        answer ip 10.0.1.30 db.services.example.com
+    }
+    forward . 8.8.8.8
+}
+
+# 示例 4: IPv6 地址重写
+ipv6.example.com:53 {
+    rewrite stop {
+        name suffix .ipv6.example.com. .ipv6.example.com.
+        answer auto
+        answer ip 2001:db8:1::100 server.ipv6.example.com
+    }
+    forward . 2001:4860:4860::8888
+}
+
+# 示例 5: 结合名称重写和 IP 重写
+# 将查询从内部域名重写到外部域名，然后修改返回的 IP
+split-horizon.example.com:53 {
+    rewrite stop {
+        name regex (.+)\.internal\.example\.com\. {1}.external.example.com.
+        answer name (.+)\.external\.example\.com\. {1}.internal.example.com.
+        answer ip 192.168.100.10 app.internal.example.com
+        answer ip 192.168.100.20 service.internal.example.com
+    }
+    forward . 8.8.8.8
+}
+
+# 示例 6: 基于 IP 映射文件的 NAT 配置
+# 将内部服务的公网 IP 映射到内网 IP
+.:53 {
+    # 首先尝试从本地 hosts 文件查询
+    hosts /etc/hosts {
+        fallthrough
+    }
+    
+    # 对特定域名进行 IP 重写
+    rewrite stop {
+        name suffix .myservice.com. .myservice.com.
+        answer auto
+        answer ip file /etc/coredns/nat-mappings.txt
+    }
+    
+    # 转发到上游 DNS
+    forward . 8.8.8.8 8.8.4.4
+    
+    # 缓存结果
+    cache 30
+}

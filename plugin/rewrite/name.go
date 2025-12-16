@@ -409,6 +409,37 @@ func parseAnswerRules(name string, args []string) (auto bool, rules ResponseRule
 			}
 			rules = append(rules, &valueRewriterResponseRule{newStringRewriter(rewriteAnswerFromPattern, rewriteAnswerTo)})
 			arg += 2
+		case IPMatch:
+			// 支持两种格式:
+			// 1. answer ip IP DOMAIN (单个映射)
+			// 2. answer ip file PATH (从hosts文件加载)
+			if len(args)-arg < 1 {
+				return false, nil, fmt.Errorf("%s answer rule for %s rule: at least 1 argument required", last, name)
+			}
+			ipRewriter := newIPRewriterResponseRule()
+			if args[arg] == "file" {
+				// 从文件加载
+				if len(args)-arg < 2 {
+					return false, nil, fmt.Errorf("%s answer rule for %s rule: file path required", last, name)
+				}
+				hostsFile := args[arg+1]
+				if err := ipRewriter.loadFromHostsFile(hostsFile); err != nil {
+					return false, nil, fmt.Errorf("%s answer rule for %s rule: %v", last, name, err)
+				}
+				arg += 2
+			} else {
+				// 单个域名到 IP 的映射
+				if len(args)-arg < 2 {
+					return false, nil, fmt.Errorf("%s answer rule for %s rule: 2 arguments (IP DOMAIN) required", last, name)
+				}
+				ip := args[arg]
+				domain := args[arg+1]
+				if err := ipRewriter.addMapping(ip, domain); err != nil {
+					return false, nil, fmt.Errorf("%s answer rule for %s rule: %v", last, name, err)
+				}
+				arg += 2
+			}
+			rules = append(rules, ipRewriter)
 		default:
 			return false, nil, fmt.Errorf("invalid type %q for answer rule for %s rule", last, name)
 		}

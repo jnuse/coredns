@@ -1,0 +1,36 @@
+# CoreDNS IP 重写映射文件示例
+# 格式: IP地址 域名 [别名...]
+# 注意: 这不是标准的 /etc/hosts 文件，而是用于 CoreDNS rewrite 插件的 IP 映射文件
+
+# === 公网到内网的 NAT 映射 ===
+# 将公网访问的域名映射到内网 IP
+
+# Web 服务器
+192.168.1.10 web.internal.example.com www.internal.example.com
+
+# API 服务器  
+192.168.1.20 api.internal.example.com api-v1.internal.example.com
+
+# 数据库服务器
+192.168.1.30 db.internal.example.com database.internal.example.com mysql.internal.example.com
+
+# 缓存服务器
+192.168.1.40 cache.internal.example.com redis.internal.example.com
+
+# === IPv6 映射示例 ===
+2001:db8:1::10 ipv6-web.internal.example.com
+2001:db8:1::20 ipv6-api.internal.example.com
+2001:db8:1::30 ipv6-db.internal.example.com
+
+# === 开发环境映射 ===
+# 将生产域名映射到开发环境 IP
+10.0.0.10 dev-api.example.com
+10.0.0.20 dev-web.example.com
+10.0.0.30 staging-api.example.com
+
+# === 负载均衡示例 ===
+# 多个域名可以映射到同一个 IP (由负载均衡器处理)
+172.16.0.100 lb1.services.example.com app1.services.example.com app2.services.example.com
+
+# === 测试环境 ===
+127.0.0.1 local.test.example.com localhost.example.com
