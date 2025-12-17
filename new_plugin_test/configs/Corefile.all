@@ -1,0 +1,91 @@
+# CoreDNS 大一统测试配置文件
+# 整合 HTTP DoH + HTTPS DoH + rewrite_ip 功能
+# 使用方法: ./coredns -conf configs/Corefile.all
+
+# ===========================================
+# Server Block 1: 标准 DNS + IP重写 (端口 8053)
+# 测试标准 UDP/TCP DNS + IP 重写
+# ===========================================
+.:8053 {
+    # IP 重写规则1: 直接重写
+    rewrite_ip {
+        match *.example.com *.com
+        hosts /workspaces/coredns/new_plugin_test/hostfiles/hosts_direct.txt
+    }
+    
+    # IP 重写规则2: 映射重写
+    rewrite_ip {
+        match *.prod.com *.api.com
+        map_to gateway.local
+        hosts /workspaces/coredns/new_plugin_test/hostfiles/hosts_mapped.txt
+    }
+    
+    # 转发到上游 DNS
+    forward . 8.8.8.8 1.1.1.1
+    
+    # 日志和错误
+    log
+    errors
+}
+
+# ===========================================
+# Server Block 2: HTTP DoH + IP重写 (端口 8080)
+# 测试 HTTP DoH（无TLS）+ IP 重写
+# ===========================================
+.:8080 {
+    doh /dns-query {
+        # 不指定 tls 即为 HTTP 模式
+    }
+    
+    rewrite_ip {
+        match *.example.com *.com
+        hosts /workspaces/coredns/new_plugin_test/hostfiles/hosts_direct.txt
+    }
+    
+    forward . 8.8.8.8
+    
+    log
+    errors
+}
+
+# ===========================================
+# Server Block 3: HTTPS DoH + IP重写 (端口 8443)
+# 测试 HTTPS DoH (自签名证书) + IP 重写
+# ===========================================
+.:8443 {
+    doh /dns-query {
+        tls selfsigned
+    }
+    
+    rewrite_ip {
+        match *.example.com *.com
+        hosts /workspaces/coredns/new_plugin_test/hostfiles/hosts_direct.txt
+    }
+    
+    forward . 8.8.8.8
+    
+    log
+    errors
+}
+
+# ===========================================
+# 测试覆盖说明
+# ===========================================
+# 
+# 1. 标准 DNS 测试 (端口 8053):
+#    dig @127.0.0.1 -p 8053 example.com
+#    预期: 10.0.0.1 (重写后)
+#
+# 2. HTTP DoH 测试 (端口 8080):
+#    curl -H "Content-Type: application/dns-message" \
+#         --data-binary @dns_query.bin \
+#         http://127.0.0.1:8080/dns-query
+#    或使用 Python 工具:
+#    python3 utils/dns_query.py example.com --doh http://127.0.0.1:8080/dns-query
+#
+# 3. HTTPS DoH 测试 (端口 8443):
+#    python3 utils/dns_query.py example.com --doh https://127.0.0.1:8443/dns-query
+#
+# 4. IP 重写验证:
+#    - example.com -> 10.0.0.1 (来自 hosts_direct.txt)
+#    - github.com -> 保留原始 IP (不匹配规则)

@@ -1,0 +1,28 @@
+# Corefile for IP Rewrite Testing
+# 包含 rewrite_ip 插件配置
+
+.:8053 {
+    # 可选: 启用 HTTP DoH 支持
+    # doh /dns-query {
+    #     # 不写tls就是http
+    # }
+    
+    # 规则1: 直接重写 *.example.com
+    rewrite_ip {
+        match *.example.com *.com
+        hosts /workspaces/coredns/new_plugin_test/hostfiles/hosts_direct.txt
+    }
+    
+    # 规则2: 映射重写 *.prod.com -> gateway.local
+    rewrite_ip {
+        match *.prod.com
+        map_to gateway.local
+        hosts /workspaces/coredns/new_plugin_test/hostfiles/hosts_mapped.txt
+    }
+    
+    # 使用 forward 获取上游真实 IP
+    forward . 8.8.8.8
+    
+    log
+    errors
+}

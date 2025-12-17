@@ -1,0 +1,21 @@
+# Corefile for Mixed Protocol Testing
+# 监听 8053 (HTTP DoH) 和 8443 (HTTPS DoH)
+
+.:8053 {
+    doh /dns-query {
+        # 不写tls就是http
+    }
+    forward . 8.8.8.8
+    log
+}
+
+.:8443 {
+    doh /dns-query {
+        # 使用自签名证书进行测试
+        tls selfsigned
+        # 或者使用真实证书:
+        # tls cert.pem key.pem
+    }
+    forward . 8.8.8.8
+    log
+}

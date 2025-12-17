@@ -1,0 +1,6 @@
+# hosts_direct.txt
+# 用于直接重写测试 (TC-03, TC-04)
+
+10.0.0.1  example.com
+10.0.0.2  web.test.com
+::1       example.com

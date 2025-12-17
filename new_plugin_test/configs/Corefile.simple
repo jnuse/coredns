@@ -1,0 +1,16 @@
+# CoreDNS 简化测试配置
+# 仅测试 rewrite_ip 功能（不含 DoH）
+
+# 标准 UDP/TCP DNS (端口 5353)
+.:5353 {
+    # IP 重写规则
+    rewrite_ip {
+        match *.example.com *.com
+        hosts /workspaces/coredns/new_plugin_test/hostfiles/hosts_direct.txt
+    }
+    
+    forward . 8.8.8.8
+    
+    log
+    errors
+}

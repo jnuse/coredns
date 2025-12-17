@@ -1,0 +1,10 @@
+# Corefile for HTTP DoH Testing
+# 监听端口 8053 (HTTP DoH)
+
+.:8053 {
+    doh /dns-query {
+        # 不写tls就是http
+    }
+    forward . 8.8.8.8
+    log
+}

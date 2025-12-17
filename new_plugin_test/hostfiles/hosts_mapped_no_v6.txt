@@ -1,0 +1,5 @@
+# hosts_mapped_no_v6.txt
+# 用于测试类型严格匹配 (TC-06)
+# 仅包含 IPv4 记录，无 IPv6
+
+192.168.1.100  gateway.local
