@@ -2,10 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      commit:
-        description: "Commit (e.g., 52f0348)"
-        default: "master"
 
 permissions:
   contents: read
@@ -19,13 +15,11 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-        with:
-          ref: ${{ github.event.inputs.commit }}
       - name: Set up info
         run: |
           set -x -e
           VERSION=$(make -f Makefile.release version)
-          COMMIT=$(git rev-parse --quiet --verify ${{ github.event.inputs.commit }})
+          COMMIT=$(git rev-parse HEAD)
           if [[ "$(git tag -l v${VERSION})" == "v${VERSION}" ]]; then
             echo "v${VERSION} already released"
             exit 1
