@@ -33,14 +33,14 @@ jobs:
         run: (cd release; for asset in `ls -A *tgz`; do sha256sum $asset > $asset.sha256; done)
       - name: Remove hidden section
         run: sed '/+++/,//d' notes/coredns-${{ steps.info.outputs.version}}.md > release.md
-      - name: Log release info
-        run: |
-          set -x -e
-          git log -1
-          echo ${{ steps.info.outputs.commit }}
-          echo ${{ steps.info.outputs.version }}
-          cat release.md
-          sha256sum release/*.tgz
+      # - name: Log release info
+      #   run: |
+      #     set -x -e
+      #     git log -1
+      #     echo ${{ steps.info.outputs.commit }}
+      #     echo ${{ steps.info.outputs.version }}
+      #     cat release.md
+      #     sha256sum release/*.tgz
       - name: Draft release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b  # v2.5.0
         with:
